@@ -26,3 +26,5 @@ tmp/*
 colladatest
 build/*
 *.swp
+.sconsign.dblite
+runtimetest
