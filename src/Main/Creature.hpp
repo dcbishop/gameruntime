@@ -2,33 +2,59 @@
 #define GAMERUNTIME_CREATURE_HPP_
 
 #include "../Main/PropertyClass.hpp"
-// TODO:DEBUG: A class for testing PropertyClass remove me
+#include "../Main/StringId.hpp"
+#include "../Main/BaseClass.hpp"
 
-class Creature {
+class Creature: public BaseClass {
    public:
    Creature():
-      health(health_s, 100),
-      x(x_s, 0.0f),
-      y(y_s, 0.0f),
-      z(z_s, 0.0f)
-   {
+      health_(health_s, 100),
+      x_(x_s, 0.0f),
+      y_(y_s, 0.0f),
+      z_(z_s, 0.0f)
+   {}
 
-   }
-   
-   PropertyClass<int> health;
-   PropertyClass<float> x;
-   PropertyClass<float> y;
-   PropertyClass<float> z;
-   
-   static const string health_s;
-   static const string x_s;
-   static const string y_s;
-   static const string z_s;
+      void setHealth(const int& health) {
+         health_.set(health);
+      }
+      const int& getHealth() const {
+         return health_.get();
+      }
+      
+      void setX(const float& x) {
+         x_.set(x);
+      }
+      
+      void setY(const float& y) {
+         y_.set(y);
+      }
+      
+      void setZ(const float& z) {
+         z_.set(z);
+      }
+
+      const float& getX() const {
+         return x_.get();
+      }
+
+      const float& getY() const {
+         return y_.get();
+      }
+
+      const float& getZ() const {
+         return z_.get();
+      }
+            
+   private:
+      Property<int> health_;
+      Property<float> x_;
+      Property<float> y_;
+      Property<float> z_;
+      
+      static const string health_s;
+      static const string x_s;
+      static const string y_s;
+      static const string z_s;
 };
-
-const string Creature::health_s = "health";
-const string Creature::x_s = "x";
-const string Creature::y_s = "y";
-const string Creature::z_s = "z";
 
 #endif /* CREATURE */

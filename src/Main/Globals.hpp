@@ -7,14 +7,14 @@
 #include "../Main/SharedId.hpp"
 
 class Replicant;
+class PropertyClass;
 
-typedef unordered_map<SharedId, Replicant*> ReplicantMap;
+typedef unordered_map<SharedId, PropertyClass*> PropertyMap;
 
 class Globals {
       public:
          ClassList* getClassList() { return &classes_list_; }
          ShareList* getShareList() { return &shared_list_; }
-         ReplicantMap* getDirtyList() { return &dirty_list_; }
 
          inline void Register(BaseClass* baseclass) {
             classes_list_.Register(baseclass);
@@ -23,16 +23,19 @@ class Globals {
          inline void Register(HasSharedId* shared) {
             shared_list_.Register(shared);
          }
-         void addDirty(Replicant* shared);
-
+         void addTransmitter(PropertyClass* shared);
+         
          static const string build_date;
          static const string git_version;
          static const string git_sha1;
+         
+         void debugPrintTransmitters();
+         void debugFakeTransmit();
 
       private:
          static ClassList classes_list_;
          static ShareList shared_list_;
-         static ReplicantMap dirty_list_;
+         static PropertyMap transmission_list_;
 };
 
 

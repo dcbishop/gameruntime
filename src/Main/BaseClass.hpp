@@ -11,11 +11,11 @@ using namespace std;
 #include "../Main/Globals.hpp"
 #include "../Main/ClassName.hpp"
 #include "../Main/SharedId.hpp"
-#include "../Main/UniqueId.hpp"
+#include "../Main/StringId.hpp"
 
 class ObjectList;
 
-class BaseClass: public HasSharedId, public HasClassName, public HasUniqueId {
+class BaseClass: public HasSharedId, public HasClassName, public HasStringId {
    public:  
       virtual inline const string& getClassName() const { return class_name_; }
       virtual void dummy(){}

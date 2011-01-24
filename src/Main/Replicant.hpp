@@ -7,9 +7,9 @@ using namespace std;
 
 #include "../Main/Globals.hpp"
 #include "../Main/SharedId.hpp"
-#include "../Main/UniqueId.hpp"
+#include "../Main/StringId.hpp"
 
-class Replicant: public HasSharedId, public HasUniqueId {
+/*class Replicant: public HasSharedId, public HasStringId {
    public:
       void* get() { return ptr_; }
       void set(void* ptr) { ptr_ = ptr; }
@@ -29,6 +29,6 @@ class Properties {
 
    private:
       set<string> properties_;
-};
+};*/
 
 #endif /* REPLICANT */ 

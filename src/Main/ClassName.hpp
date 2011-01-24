@@ -1,3 +1,6 @@
+#ifndef GAMERUNTIME_CLASSNAME_HPP_
+#define GAMERUNTIME_CLASSNAME_HPP_
+
 #include <string>
 using std::string;
 
@@ -11,3 +14,5 @@ class HasClassName {
          globals.getShareList();
       }
 };
+
+#endif /* GAMERUNTIME_CLASSNAME_HPP_ */
