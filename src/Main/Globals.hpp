@@ -15,6 +15,7 @@ class Globals {
       public:
          ClassList* getClassList() { return &classes_list_; }
          ShareList* getShareList() { return &shared_list_; }
+         PropertyMap* getTransmissionList() { return &transmission_list_; }
 
          inline void Register(BaseClass* baseclass) {
             classes_list_.Register(baseclass);

@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
    globals.debugFakeTransmit();
    globals.debugFakeTransmit();
    globals.debugFakeTransmit();*/
-   
+  
    World world;
    world.setStringId("The_World");
    
@@ -49,19 +49,22 @@ int main(int argc, char* argv[]) {
    int direction = 1;
 
    GameServer game_server_;
-   
+   if(argc > 2) {
+      game_server_.addConnection(argv[1], argv[2]);
+   }
+
    while(true) {
-      /*sleep(0.1);
+      game_server_.recieve();
+      sleep(0.1);
       x+=speed*direction;
       player1.setX(x);
-      globals.debugFakeTransmit();
       if(x > 10.0f) {
          direction = -1;
       }
       if(x < -10.0f) {
          direction = 1;
-      }*/
-      game_server_.recieve();
+      }
+      game_server_.transmit();
    }
    
 

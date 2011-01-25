@@ -2,17 +2,23 @@
 #define GAMERUNTIME_GAMESERVER_HPP_
 
 #include <iostream>
+#include <vector>
 using namespace std;
 
 //TODO: Also support native asio...
 #include <boost/asio.hpp>
-using namespace boost::asio;
+using namespace boost;
+using namespace asio;
+using namespace ip;
 
 const int buf_size = 8192;
+typedef vector<ip::udp::endpoint> ConnectionsList;
 
 class GameServer {
    public:
-      GameServer(): port_(11010) {
+      GameServer(int port=11010, bool enableIPv6=true, bool enableIPv4=true): port_(11010), enableIPv6_(enableIPv6), enableIPv4_(enableIPv4) {
+         socket6_ = NULL;
+         socket4_ = NULL;
          start();
       }
       
@@ -21,59 +27,26 @@ class GameServer {
          delete socket6_;
       }
       
-      void start() {
-         ip::tcp::socket::non_blocking_io non_blocking_io(true);
-         
-         // Open the sockets, for most sysems an IPv6 socket should also open IPv4 but not pre-Vista Windows...
-         DEBUG_M("Opening IPv4 socket...");
-         socket4_ = new ip::udp::socket(io_, ip::udp::endpoint(ip::udp::v4(), getPort()));
-         
-         DEBUG_M("Opening IPv6 socket...");
-         socket6_ = new ip::udp::socket(io_);
-         ip::udp::endpoint endpoint6(ip::udp::v6(), getPort());
-         socket6_->open(endpoint6.protocol());
-         socket6_->set_option(ip::v6_only(true));
-         socket6_->bind(endpoint6);
-         
-         // Turn off socket blocking...
-         socket4_->io_control(non_blocking_io);
-         socket6_->io_control(non_blocking_io);
-      }
-
-      void recieve() {
-         ip::udp::endpoint sender_;
-         try {
-            size_t bytes = socket6_->receive_from(boost::asio::buffer(recv_buf_), sender_);
-            cout << recv_buf_ << endl;
-         } catch(std::exception e) {
-            // Nothing...
-         }
-         
-         try {
-            size_t bytes = socket4_->receive_from(boost::asio::buffer(recv_buf_), sender_);
-            cout << recv_buf_ << endl;
-         } catch(std::exception e) {
-           // Nothing...
-         }
-      }
-      
       int getPort() {
          return port_;
       }
-   
-   
-   
-   //boost::array<char, 128> recv_buf_;
-   /*udp::endpoint sender_endpoint;
-   size_t len = socket.receive_from(boost::asio::buffer(recv_buf), sender_endpoint);
-   std::cout.write(recv_buf.data(), len);*/
-    
+
+      void start();
+      void recieve();
+      void transmit();
+      void addConnection(const string& address, const string& port);
+      void addConnection(ip::udp::endpoint endpoint);
+      void writeAll(const string& data);
+
    private:
-      io_service io_;
+      io_service io_service_;
       ip::udp::socket* socket4_;
       ip::udp::socket* socket6_;
       int port_;
       char recv_buf_[buf_size];
+      bool enableIPv6_;
+      bool enableIPv4_;
+      ConnectionsList connections_;
 };
 
 #endif /* GAMERUNTIME_GAMESERVER_HPP_ */

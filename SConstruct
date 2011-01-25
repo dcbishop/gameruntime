@@ -72,7 +72,7 @@ if int(debug_flag):
 # clang also needs boost as it doesn't seem to work with c++0x
 if int(clang_flag):
 	env['CXX'] = 'clang++'
-	env.Append(CCFLAGS = ['-fcolor-diagnostics'])
+	env.Append(CCFLAGS = ['-fcolor-diagnostics', '-ferror-limit=200'])
 
 env.Append(CCFLAGS = ['-Wall'])
 
