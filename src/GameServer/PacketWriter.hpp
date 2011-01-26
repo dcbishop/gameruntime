@@ -20,25 +20,25 @@ namespace PacketWriter {
       return packet_size;
    }
    
-   inline unsigned int ping(char* buffer, const unsigned int& bufsize, const time_t& timestamp) {
-      const unsigned int packet_size = 1 + sizeof(timestamp);
+   inline unsigned int ping(char* buffer, const unsigned int& bufsize, const int& pingnum) {
+      const unsigned int packet_size = 1 + sizeof(pingnum);
       if(packet_size > bufsize) {
          ERROR("Out of send buffer space.");
          return 0;
       }
       buffer[0] = OP_PING;
-      memcpy(buffer+1, &timestamp, sizeof(timestamp));
+      memcpy(buffer+1, &pingnum, sizeof(pingnum));
       return packet_size;     
    }
    
-   inline unsigned int pong(char* buffer, const unsigned int& bufsize, const time_t& timestamp) {
-      const unsigned int packet_size = 1 + sizeof(timestamp);
+   inline unsigned int pong(char* buffer, const unsigned int& bufsize, const int& pingnum) {
+      const unsigned int packet_size = 1 + sizeof(pingnum);
       if(packet_size > bufsize) {
          ERROR("Out of send buffer space.");
          return 0;
       }
       buffer[0] = OP_PONG;
-      memcpy(buffer+1, &timestamp, sizeof(timestamp));
+      memcpy(buffer+1, &pingnum, sizeof(pingnum));
       return packet_size;     
    }
 };

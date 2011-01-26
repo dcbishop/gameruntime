@@ -23,6 +23,8 @@ class GameServer {
          socket6_ = NULL;
          socket4_ = NULL;
          transmits_per_second_ = 33;//Hz
+         isDualStack_ = false;
+         timeout_ = 10;
          start();
       }
       
@@ -41,8 +43,11 @@ class GameServer {
       void addConnection(const string& address, const string& port);
       void addConnection(ip::udp::endpoint endpoint);
       void writeAll(const char* data, const unsigned int& size);
+      void write(const char* data, const unsigned int& size, const udp::endpoint& destination);
 
    private:
+      size_t receive_from_();
+
       int transmits_per_second_;
       io_service io_service_;
       ip::udp::socket* socket4_;
@@ -52,7 +57,10 @@ class GameServer {
       char send_buf_[buf_size];
       bool enableIPv6_;
       bool enableIPv4_;
+      bool isDualStack_;
       ConnectionsList connections_;
+      ip::udp::endpoint last_sender_;
+      int timeout_;
 };
 
 #endif /* GAMERUNTIME_GAMESERVER_HPP_ */

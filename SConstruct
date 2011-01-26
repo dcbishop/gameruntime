@@ -14,7 +14,7 @@ clang_flag = ARGUMENTS.get('clang', 0)
 boost_flag = ARGUMENTS.get('boost', 0)
 
 env.Tool('colourful', toolpath=['scons-tools'])
-env.AppendUnique(LIBS=['boost_system', 'boost_serialization', 'uuid'])#, 'boost_thread', 'libboost_system'])
+env.AppendUnique(LIBS=['boost_system', 'boost_serialization', 'boost_program_options', 'uuid'])#, 'boost_thread', 'libboost_system'])
 #env.AppendUnique(LIBS=['m', 'IL', 'mxml', 'rcbc', 'luabind'])
 #env.Tool('qt')
 #env.AppendUnique(LIBS=['xerces-c', 'GL', 'GLU', 'GLEW', 'IL', 'noise', 'boost_system'])#, 'boost_thread', 'libboost_system'])
