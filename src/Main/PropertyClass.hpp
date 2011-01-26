@@ -9,8 +9,9 @@ using namespace std;
 
 #include "../Main/SharedId.hpp"
 #include "../Main/Globals.hpp"
+#include "../Main/Serializable.hpp"
 
-class PropertyClass: public HasSharedId {
+class PropertyClass: public HasSharedId, public Serializable {
    public:
       PropertyClass(const string& name): name_(name) {setDefualts_();}
 
@@ -44,8 +45,6 @@ class PropertyClass: public HasSharedId {
       
       const string& getName() const { return name_; }
 
-      virtual void serialize(char* data) const = 0;
-
       // Sets that this property needs to be transmitted to the clients
       void setTransmitFlag(bool flag=true) {
          if(!flag) {
@@ -63,8 +62,6 @@ class PropertyClass: public HasSharedId {
       bool getTransmitFlag() {
          return need_transmit_;
       }
-      
-      virtual size_t getSize() const = 0;
       
    protected:
       void setDefualts_() {
@@ -95,7 +92,6 @@ class Property: public PropertyClass {
       { setDefualts_(); }
 
       const T& get() const { return value_; }
-      size_t getSize() const { return sizeof(value_); }
 
       virtual void set(const T& value) {
          setDirty();
@@ -107,9 +103,11 @@ class Property: public PropertyClass {
          return o.str();
       }
       
-      void serialize(char* data) const {
-         memcpy(data, &value_, getSize());
+      void networkSerialize(char* data) const {
+         memcpy(data, &value_, getSerializedSize());
       }
+      size_t getSerializedSize() const { return sizeof(value_); }
+
    private:
       T value_;   
 };

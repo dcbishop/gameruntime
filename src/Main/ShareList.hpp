@@ -4,14 +4,14 @@
 #include <unordered_map>
 using namespace std;
 
-typedef unordered_map<SharedId, HasSharedId*> ShareMap;
+typedef unordered_map<SharedId, HasSharedIdPtr> ShareMap;
 class ShareList {
    public:
-      void Register(HasSharedId* shared) {
+      void Register(HasSharedIdPtr shared) {
          shares_.insert( make_pair(shared->getSharedId(), shared));
       };
       
-      HasSharedId* get(SharedId id) {
+      HasSharedIdPtr get(SharedId id) {
          return shares_.find(id)->second;
       }
 

@@ -13,20 +13,6 @@ using namespace std;
 
 int main(int argc, char* argv[]) {
    LOG("Starting %s, version %s, built %s...", argv[0], globals.git_version.c_str(), globals.build_date.c_str());
-   /*BaseClass test;
-   Player testPlayer;   
-   globals.getClassList()->DebugPrint();*/
-   
-   /*globals.debugPrintTransmitters();
-   Creature dragon;
-   globals.debugPrintTransmitters();
-   dragon.health.set(100);
-   DEBUG_M("Health is %s", dragon.health.toString().c_str());
-   globals.debugPrintTransmitters();
-   globals.debugFakeTransmit();
-   globals.debugFakeTransmit();
-   globals.debugFakeTransmit();
-   globals.debugFakeTransmit();*/
   
    World world;
    world.setStringId("The_World");
@@ -55,7 +41,7 @@ int main(int argc, char* argv[]) {
 
    while(true) {
       game_server_.recieve();
-      sleep(0.1);
+      //sleep(0.1);
       x+=speed*direction;
       player1.setX(x);
       if(x > 10.0f) {

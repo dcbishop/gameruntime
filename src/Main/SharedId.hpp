@@ -15,6 +15,8 @@ class HasSharedId {
 
    private:
       SharedId shared_id_;
+      
 };
+typedef HasSharedId* HasSharedIdPtr;
 
 #endif /* GAMERUNTIME_SHAREDID_HPP_ */

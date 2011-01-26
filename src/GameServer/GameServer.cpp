@@ -2,6 +2,7 @@
 
 #include "../Main/Globals.hpp"
 #include "../Main/PropertyClass.hpp"
+#include "../GameServer/PacketWriter.hpp"
 
 #include "../Debug/console.h"
 
@@ -59,6 +60,16 @@ void GameServer::recieve() {
 }
 
 void GameServer::transmit() {
+   ptime current_time = microsec_clock::universal_time();
+   static ptime last_time = current_time;
+
+   // Limit our transmit rate
+   static time_duration transmit_rate_ = time_duration(0, 0, 0, time_duration::ticks_per_second()/transmits_per_second_);
+   if(current_time - last_time < transmit_rate_) {
+      return;
+   }
+   
+   // Loop through all the tracked properties and send any that have a dirty network flag
    for(PropertyMap::iterator it = globals.getTransmissionList()->begin(); it!=globals.getTransmissionList()->end(); it++) {
       // If it's not market for transmit, skip it...
       if(!(it->second)->getTransmitFlag()) {
@@ -66,16 +77,31 @@ void GameServer::transmit() {
       }
       // Remove the transmit flag...
       it->second->setTransmitFlag(false);
-      string a = "a" + it->second->toString();
-      string data = "SET ";// + it->second->getSharedId() + it->second->toString();
-      writeAll(data);
+
+      unsigned int size = PacketWriter::set(send_buf_, buf_size, it->second->getSharedId(), it->second);
+      send_buf_[size] = '\0';
+
+      writeAll(send_buf_, size);
    }
+   last_time = current_time;
 }
 
-void GameServer::writeAll(const string& data) {
-   DEBUG_M("%s", data.c_str());
+/**
+ * Broadcast a message to everyone.
+ */
+void GameServer::writeAll(const char* data, const unsigned int& size) {
+   //DEBUG_M("%x", *data);
    boost::system::error_code  ignored_error;
    
+   // TODO: DEBUG
+#if DEBUG_LEVEL >= DEBUG_VERY_HIGH
+   cout << "[SEND]: ";
+   for(unsigned int i = 0; i < size; i++) {
+      cout << hex << setfill ('0') << setw(8) << (int)data[i] << " ";
+   }
+   cout << endl;
+#endif
+
    //TODO: Clean me up, choose the correct socket (if dual stack then just socket6_, otherwise we have to choose 4 for 4 clients);
    udp::socket* sockout;
    if(socket6_) {
@@ -86,7 +112,7 @@ void GameServer::writeAll(const string& data) {
    
    for(ConnectionsList::iterator it = connections_.begin(); it < connections_.end(); it++) {
       DEBUG_M("SEND");
-      sockout->send_to(asio::buffer(data), (*it), 0, ignored_error);
+      sockout->send_to(asio::buffer(data, size), (*it), 0, ignored_error);
    }
    
    if(ignored_error) {

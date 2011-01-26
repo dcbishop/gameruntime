@@ -21,7 +21,7 @@ class Globals {
             classes_list_.Register(baseclass);
          }
 
-         inline void Register(HasSharedId* shared) {
+         inline void Register(HasSharedIdPtr shared) {
             shared_list_.Register(shared);
          }
          void addTransmitter(PropertyClass* shared);
