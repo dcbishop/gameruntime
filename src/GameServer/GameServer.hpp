@@ -19,7 +19,7 @@ using namespace boost::posix_time;
 
 class GameServer {
    public:
-      GameServer(int port=11010, bool enableIPv6=true, bool enableIPv4=true): port_(11010), enableIPv6_(enableIPv6), enableIPv4_(enableIPv4) {
+      GameServer(int port=11010, bool enableIPv6=true, bool enableIPv4=true): port_(port), enableIPv6_(enableIPv6), enableIPv4_(enableIPv4) {
          socket6_ = NULL;
          socket4_ = NULL;
          transmits_per_second_ = 33;//Hz

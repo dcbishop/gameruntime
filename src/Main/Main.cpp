@@ -22,6 +22,8 @@ int main(int argc, char* argv[]) {
    bool isServer = false;
    bool enableIPv6 = true;
    bool enableIPv4 = true;
+   int localport = 0;
+   int remoteport = 11010;
    
    po::options_description desc("Allowed options");
    desc.add_options()
@@ -31,7 +33,7 @@ int main(int argc, char* argv[]) {
       ("6,6", "Forces server to use IPv6.")
       ("4,4", "Forces server to use IPv4.")
       ("hostname,h", po::value<string>(&hostname), "Connect to server with this hostname.")
-      ("port,p", po::value<int>(&port)->default_value(11010), "Connect to server on port number.")
+      ("port,p", po::value<int>(&port)->default_value(11010), "Specify port number (for server this is the listening port number).")
    ;
 
    po::positional_options_description p;
@@ -56,6 +58,7 @@ int main(int argc, char* argv[]) {
 
    LOG("Starting %s, version %s, built %s...", argv[0], globals.git_version.c_str(), globals.build_date.c_str());
 
+   // Check for both IPv6 and IPv4
    if(vm.count("4") && vm.count("6")) {
       enableIPv6 = true;
       enableIPv4 = true;
@@ -78,7 +81,17 @@ int main(int argc, char* argv[]) {
    // server arg
    if (vm.count("server")) {
        isServer = true;
-       return 0;
+       localport = port;
+       remoteport = 0;
+   } else {
+      // If this is a client
+      isServer = false;
+      remoteport = port;
+      localport = 0;
+      if(hostname.empty()) {
+         ERROR("You must specift a server to connect to");
+         return 1;
+      }
    }
 
    World world;
@@ -97,10 +110,12 @@ int main(int argc, char* argv[]) {
    area1.addObject(&player1);
    area2.addObject(&player2);
    
-   GameServer game_server_(port, enableIPv6, enableIPv4);
+   DEBUG_M("localport: %d, remoteport: %d", localport, remoteport);
+   
+   GameServer game_server_(localport, enableIPv6, enableIPv4);
    if(!isServer) {
       std::ostringstream port_ss;
-      port_ss << port;
+      port_ss << remoteport;
       game_server_.addConnection(hostname, port_ss.str());
    }
 
@@ -109,13 +124,16 @@ int main(int argc, char* argv[]) {
    int direction = 1;
    while(true) {
       game_server_.recieve();
-      x+=speed*direction;
-      player1.setX(x);
-      if(x > 10.0f) {
-         direction = -1;
-      }
-      if(x < -10.0f) {
-         direction = 1;
+      // TODO: DEBUG CODE
+      if(isServer) {
+         x+=speed*direction;
+         player1.setX(x);
+         if(x > 10.0f) {
+            direction = -1;
+         }
+         if(x < -10.0f) {
+            direction = 1;
+         }
       }
       game_server_.transmit();
    }

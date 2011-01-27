@@ -18,12 +18,14 @@ void GameServer::start() {
          
          socket6_ = new ip::udp::socket(io_service_);
          ip::udp::endpoint ep6(ip::udp::v6(), getPort());
-         socket6_->open(ep6.protocol());
+         //ip::udp::endpoint ep6();
+         socket6_->open(udp::v6());
          if(!enableIPv4_) {
             DEBUG_M("Setting v6 only socket option.");
             socket6_->set_option(ip::v6_only(true));
          }
          socket6_->bind(ep6);
+         DEBUG_M("Listening on port %d", socket6_->local_endpoint().port());
       }
    } catch (std::exception& e) {
        ERROR("Could not open IPv6 socket: %s", e.what());
