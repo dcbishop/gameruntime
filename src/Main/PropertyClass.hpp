@@ -111,15 +111,16 @@ class Property: public PropertyClass {
    private:
       T value_;   
 };
+typedef PropertyClass* PropertyClassPtr;
 
-typedef unordered_map<string, PropertyClass*> Properties; 
+typedef unordered_map<string, PropertyClassPtr> Properties; 
 class HasProperties {
    public:
-      void bindProperty(PropertyClass* property) {
+      void bindProperty(PropertyClassPtr property) {
          properties_.insert(make_pair(property->getName(), property));
       }
 
-      PropertyClass* getProperty(const string& name) {
+      PropertyClassPtr getProperty(const string& name) {
          return properties_[name];
       }
      

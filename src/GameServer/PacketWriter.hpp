@@ -1,10 +1,11 @@
 #ifndef GAMERUNTIME_PACKETWRITER_HPP_
 #define GAMERUNTIME_PACKETWRITER_HPP_
 
-enum opcodes {OP_NULL, OP_RESERVED, OP_PING, OP_PONG, OP_SET, OP_DUMMYLAST, OP_ROLLOVER=255};
+enum opcodes {OP_NULL, OP_RESERVED, OP_CONNECT, OP_CONNECTED, OP_PING, OP_PONG, OP_SET, OP_ERROR, OP_DUMMYLAST, OP_ROLLOVER=255};
 const int LAST_OPCODE = OP_DUMMYLAST;
 
 #include "../Debug/console.h"
+#include <boost/uuid/uuid.hpp>
 
 namespace PacketWriter {
    inline unsigned int set(char* buffer, const unsigned int& bufsize, const SharedId& id, const SerializablePtr object) {
@@ -19,6 +20,17 @@ namespace PacketWriter {
       object->networkSerialize(buffer+1+sizeof(id));
       return packet_size;
    }
+
+   inline unsigned int connect(char* buffer, const unsigned int& bufsize, const boost::uuids::uuid& token) {
+      const unsigned int packet_size = 1 + token.size();
+      if(packet_size > bufsize) {
+         ERROR("Out of send buffer space.");
+         return 0;
+      }
+      buffer[0] = OP_CONNECT;
+      copy(token.begin(), token.end(), buffer+1);
+      return packet_size;     
+   }
    
    inline unsigned int ping(char* buffer, const unsigned int& bufsize, const int& pingnum) {
       const unsigned int packet_size = 1 + sizeof(pingnum);
@@ -30,7 +42,7 @@ namespace PacketWriter {
       memcpy(buffer+1, &pingnum, sizeof(pingnum));
       return packet_size;     
    }
-   
+  
    inline unsigned int pong(char* buffer, const unsigned int& bufsize, const int& pingnum) {
       const unsigned int packet_size = 1 + sizeof(pingnum);
       if(packet_size > bufsize) {

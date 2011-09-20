@@ -31,7 +31,7 @@ const string Globals::git_sha1 = _GIT_SHA1;
    dirty_list_.insert( make_pair(shared->getSharedId(), shared) );
 }*/
 
-void Globals::addTransmitter(PropertyClass* shared) {
+void Globals::addTransmitter(PropertyClassPtr shared) {
    //TODO: Tell all the clients of the new object!
    transmission_list_.insert( make_pair(shared->getSharedId(), shared) );
 }

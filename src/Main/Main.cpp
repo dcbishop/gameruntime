@@ -11,6 +11,8 @@ using namespace std;
 
 #include "../Debug/console.h"
 
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
 
@@ -22,9 +24,10 @@ int main(int argc, char* argv[]) {
    bool isServer = false;
    bool enableIPv6 = true;
    bool enableIPv4 = true;
+   bool testmode = false;
    int localport = 0;
    int remoteport = 11010;
-   
+   string debugtoken_s = "8cbf22cf-d244-4784-a888-f0a37457ca6f";
    po::options_description desc("Allowed options");
    desc.add_options()
       ("help", "Display this help and exit.")
@@ -32,6 +35,8 @@ int main(int argc, char* argv[]) {
       ("server,s", "Start a dedicated server.")
       ("6,6", "Forces server to use IPv6.")
       ("4,4", "Forces server to use IPv4.")
+      ("testmode", "DEBUG")
+      ("token", po::value<string>(&debugtoken_s), "DEBUG")
       ("hostname,h", po::value<string>(&hostname), "Connect to server with this hostname.")
       ("port,p", po::value<int>(&port)->default_value(11010), "Specify port number (for server this is the listening port number).")
    ;
@@ -49,6 +54,11 @@ int main(int argc, char* argv[]) {
        cout << desc << "\n";
        return 0;
    }
+   
+   if (vm.count("testmode")) {
+      testmode = true;
+   }
+
 
    // version arg
    if (vm.count("version")) {
@@ -89,7 +99,7 @@ int main(int argc, char* argv[]) {
       remoteport = port;
       localport = 0;
       if(hostname.empty()) {
-         ERROR("You must specift a server to connect to");
+         ERROR("You must specify a server to connect to");
          return 1;
       }
    }
@@ -112,11 +122,14 @@ int main(int argc, char* argv[]) {
    
    DEBUG_M("localport: %d, remoteport: %d", localport, remoteport);
    
+   boost::uuids::uuid debug_token = boost::uuids::string_generator()(debugtoken_s);
+   
    GameServer game_server_(localport, enableIPv6, enableIPv4);
+   //game_server_.addToken(debug_token);
    if(!isServer) {
       std::ostringstream port_ss;
       port_ss << remoteport;
-      game_server_.addConnection(hostname, port_ss.str());
+      game_server_.connect(hostname, port_ss.str(), debug_token);
    }
 
    float x = 0.0f;
@@ -125,14 +138,16 @@ int main(int argc, char* argv[]) {
    while(true) {
       game_server_.recieve();
       // TODO: DEBUG CODE
-      if(isServer) {
-         x+=speed*direction;
-         player1.setX(x);
-         if(x > 10.0f) {
-            direction = -1;
-         }
-         if(x < -10.0f) {
-            direction = 1;
+      if(testmode) {
+         if(isServer) {
+            x+=speed*direction;
+            player1.setX(x);
+            if(x > 10.0f) {
+               direction = -1;
+            }
+            if(x < -10.0f) {
+               direction = 1;
+            }
          }
       }
       game_server_.transmit();

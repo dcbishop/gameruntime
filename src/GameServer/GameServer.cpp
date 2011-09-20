@@ -5,6 +5,8 @@
 #include "../GameServer/PacketWriter.hpp"
 
 #include "../Debug/console.h"
+ 
+#include <boost/uuid/uuid_io.hpp>
 
 void GameServer::start() {
    ip::tcp::socket::non_blocking_io non_blocking_io(true);
@@ -66,9 +68,51 @@ void GameServer::recieve() {
    // Keep processing received data untill there is no more...
    size_t bytes = receive_from_();
    while(bytes != 0) {
-      LOG("%s: %s", last_sender_.address().to_string().c_str(), recv_buf_);
+      cout << "[RECV]: " << last_sender_.address().to_string() << ": ";
+      debugDumpBuffer_(recv_buf_, bytes);
+      // TODO: Check for banned ips...
+      processPacket(bytes);
       bytes = receive_from_();
    }   
+}
+
+void GameServer::processPacket(const unsigned int& size) {
+   if(recv_buf_[0] == OP_PING) {
+      DEBUG_M("Revieced PING.");
+      recv_buf_[0] = OP_PONG;
+      write(recv_buf_, size, last_sender_);
+      DEBUG_M("Send PONG.");
+   } else if(recv_buf_[0] == OP_CONNECT) {
+      DEBUG_M("Revieced CONNECT.");
+      // TODO: Verify security token, clear token after find to stop multiple connections.
+      boost::uuids::uuid token = boost::uuids::nil_generator()();
+      if(token.size() > (signed)size+1) {
+         DEBUG_M("Not big enough to be a UUID!");
+         return;
+      }
+
+      memcpy(token.begin(), recv_buf_+1, token.size());
+
+      recv_buf_[0] = OP_CONNECTED;
+
+      addConnection(last_sender_);
+      write(recv_buf_, size, last_sender_);
+   } else if(recv_buf_[0] == OP_SET) {
+      // Look up shared ID
+      if(size < 1+sizeof(SharedId)) {
+         return;
+      }
+      SharedId shared_id;
+      memcpy(&shared_id, recv_buf_+1, sizeof(SharedId));
+      PropertyClassPtr property = globals.getTransmissionList()->find(shared_id)->second;
+      
+      if(size < 1+sizeof(SharedId)+property->getSerializedSize()) {
+         return;
+      }
+
+      // Set property...
+      
+   }
 }
 
 void GameServer::transmit() {
@@ -98,19 +142,22 @@ void GameServer::transmit() {
    last_time = current_time;
 }
 
+void GameServer::debugDumpBuffer_(const char* buffer, const unsigned int& size) {
+   // TODO: DEBUG
+#if DEBUG_LEVEL >= DEBUG_VERY_HIGH
+   for(unsigned int i = 0; i < size; i++) {
+      cout << hex << setfill ('0') << setw(8) << (int)buffer[i] << " ";
+   }
+   cout << endl;
+#endif
+}
+
 /**
  * Broadcast a message to everyone.
  */
 void GameServer::writeAll(const char* data, const unsigned int& size) {
 
-   // TODO: DEBUG
-#if DEBUG_LEVEL >= DEBUG_VERY_HIGH
-   cout << "[SEND]: ";
-   for(unsigned int i = 0; i < size; i++) {
-      cout << hex << setfill ('0') << setw(8) << (int)data[i] << " ";
-   }
-   cout << endl;
-#endif
+   debugDumpBuffer_(data, size);
   
    for(ConnectionsList::iterator it = connections_.begin(); it < connections_.end(); it++) {
       write(data, size, (*it));
@@ -138,7 +185,7 @@ void GameServer::addConnection(ip::udp::endpoint endpoint) {
    connections_.push_back(endpoint);
 }
 
-void GameServer::addConnection(const string& address, const string& port) {
+void GameServer::connect(const string& address, const string& port, const boost::uuids::uuid& token) {
    LOG("Resolving '%s' '%s'", address.c_str(), port.c_str());
    try {
       udp::resolver resolver(io_service_);
@@ -148,7 +195,7 @@ void GameServer::addConnection(const string& address, const string& port) {
       udp::resolver::iterator end;
 
       // Iterate through all the endpoints and send a ping to find the working/best.
-      int size = PacketWriter::ping(send_buf_, buf_size, 0);
+      int size = PacketWriter::connect(send_buf_, buf_size, token);
       while (endpoint_iterator != end) {
          udp::endpoint endpoint = (*endpoint_iterator).endpoint();
          if(enableIPv6_ && (endpoint.protocol() == endpoint.protocol().v6())) {
@@ -160,7 +207,6 @@ void GameServer::addConnection(const string& address, const string& port) {
          }
          endpoint_iterator++;
       }
-      //addConnection((*endpoint_iterator).endpoint());
    } catch (std::exception& e) {
       ERROR("Failed to resolve: %s", e.what());
       return; // TODO: Write XMPP error message here
